@@ -8,37 +8,52 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State   var padding: CGFloat = 10
-    @State   var size: CGFloat = 100
-    @State   var rectCount: Int = 4
+    @State   var padding: CGFloat = 8
+    @State   var rectCount: Int = 7
+    @State   var isHorizontal: Bool = true
+    
     var body: some View {
-        HStack {
-            ForEach(0..<rectCount, id: \.self) { _ in
-                self.coloredRectangle()
-            }
-        }.padding(padding)
-    }
-    
-    func coloredRectangle() -> some View {
-        Rectangle()
-            .frame(width: calculateRectSize(), height: calculateRectSize())
-            .foregroundColor(randomColor())
-    }
-    
-    func randomColor() -> Color {
-        let colors: [Color] = [.blue, .red, .cyan, .mint, .purple]
-        return colors.randomElement() ?? .black
-    }
-    
-    
-    func calculateRectSize() -> CGFloat {
-        let screenWidth = UIScreen.main.bounds.width
-        let totalPadding = CGFloat(rectCount - 1) * padding
-        let rectWidth = (screenWidth - totalPadding) / CGFloat(rectCount)
         
-        return rectWidth
+        
+        GeometryReader { geometry in
+            let layout = isHorizontal 
+            ? AnyLayout(HStackLayout(spacing: padding))
+            : AnyLayout(VStackLayout(spacing: 0))
+            
+            layout {
+                ForEach(isHorizontal
+                        ? Array(0..<rectCount)
+                        : Array((0..<rectCount).reversed()), id: \.self) { index in
+                    blueRectangle(geometry: geometry, index: index)
+                }
+                
+                
+            }
+            .onTapGesture {
+                withAnimation {
+                    isHorizontal.toggle()
+                }
+            }
+            
+        }
     }
     
+    
+    func blueRectangle(geometry: GeometryProxy, index: Int) -> some View {
+        let squareHeight = geometry.size.height / CGFloat(rectCount)
+        
+        
+        return RoundedRectangle(cornerRadius: 12)
+            .aspectRatio(contentMode: .fit)
+            .foregroundStyle(.blue)
+            .offset(
+                x: isHorizontal 
+                ? 0
+                : CGFloat(index) * (geometry.size.width - squareHeight) / CGFloat(rectCount - 1),
+                
+                y: isHorizontal ? geometry.size.height / 2 : 0
+            )
+    }
     
 }
 
